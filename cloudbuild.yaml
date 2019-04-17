@@ -1,0 +1,34 @@
+steps:
+    # build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/fizz-buzz-rust', '.']
+    waitFor: ['-']
+    id: 'docker-build'
+    # push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/fizz-buzz-rust']
+    waitFor: ['docker-build']
+    id: 'docker-push'
+    # Deploy container image to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'beta'
+      - 'run'
+      - 'deploy'
+      - 'fizz-buzz-rust'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/fizz-buzz-rust'
+      - '--allow-unauthenticated'
+      - '--region'
+      - 'us-central1'
+    waitFor: ['docker-push']
+    id: 'run-deploy'
+    # Smoke Test
+  - name: 'gcr.io/cloud-builders/curl'
+    args: [ "-H", "X-Smoke-Test: true", '-sSL', '-D', '-', '-o', '/dev/null', 'https://fizz-buzz-rust-ncktyp5j5q-uc.a.run.app']
+    waitFor: ['run-deploy']
+    id: 'curl-https-home'
+  - name: 'gcr.io/cloud-builders/curl'
+    args: [ "-H", "X-Smoke-Test: true", '-sSL', '-D', '-', '-o', '/dev/null', 'https://fizz-buzz-rust-ncktyp5j5q-uc.a.run.app/1']
+    waitFor: ['run-deploy']
+    id: 'curl-https-fizz-buzz'
