@@ -1,0 +1,15 @@
+[package]
+name = "fizz-buzz-rust"
+version = "0.1.0"
+authors = ["Billie Thompson <billie@billiecodes.com>"]
+edition = "2018"
+
+[profile.release]
+debug = true
+
+[dependencies]
+iron = "0.6.*"
+router = "*"
+
+[dev-dependencies]
+iron-test = "0.6.0"
